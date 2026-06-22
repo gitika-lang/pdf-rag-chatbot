@@ -156,25 +156,7 @@ def render_sidebar() -> None:
         st.divider()
 
         # --- File Uploader ---
-        st.markdown("## 📂 Upload Documents")
-        uploaded_files = st.file_uploader(
-            label="Upload one or more PDF files",
-            type=["pdf"],
-            accept_multiple_files=True,
-            help=f"Maximum file size: {MAX_UPLOAD_SIZE_MB} MB per file.",
-            disabled=is_processing(),
-        )
-
-        if uploaded_files:
-            st.caption(f"{len(uploaded_files)} file(s) selected")
-            if st.button(
-                label="🚀 Process Documents",
-                type="primary",
-                use_container_width=True,
-                disabled=is_processing(),
-                help="Extract text, generate embeddings, and build the search index.",
-            ):
-                _run_processing_pipeline(uploaded_files)
+        
 
         st.divider()
         _render_file_info()
@@ -450,6 +432,7 @@ def render_chat_interface() -> None:
     - Message history with source citations
     - Chat input box
     """
+
     # Header
     st.markdown("""
         <div class="main-header">
@@ -458,6 +441,25 @@ def render_chat_interface() -> None:
         </div>
     """, unsafe_allow_html=True)
 
+    st.subheader("📂 Upload Documents")
+
+    uploaded_files = st.file_uploader(
+        "Upload one or more PDF files",
+        type=["pdf"],
+        accept_multiple_files=True,
+        disabled=is_processing()
+    )
+
+    if uploaded_files:
+        st.success(f"{len(uploaded_files)} file(s) selected")
+
+        if st.button(
+            "🚀 Process Documents",
+            type="primary",
+            use_container_width=True
+        ):
+            _run_processing_pipeline(uploaded_files)
+
     # Onboarding when no index exists
     if not has_vector_store():
         _render_onboarding()
@@ -465,18 +467,18 @@ def render_chat_interface() -> None:
 
     # Render all messages
     for message in get_messages():
-        role    = message["role"]
+        role = message["role"]
         content = message["content"]
         sources = message.get("sources", [])
 
         with st.chat_message(role, avatar="👤" if role == "user" else "🤖"):
             st.markdown(content)
+
             if role == "assistant" and sources:
                 _render_source_citations(sources)
 
     # Chat input
     _render_chat_input()
-
 
 def _render_onboarding() -> None:
     """Welcome screen shown before any documents are uploaded."""
@@ -643,6 +645,7 @@ def main() -> None:
     2. initialise_session()    — must run before any session_state access
     3. render_sidebar()        — file upload + controls
     4. render_chat_interface() — main chat area
+
     """
     inject_custom_css()
     initialise_session()
